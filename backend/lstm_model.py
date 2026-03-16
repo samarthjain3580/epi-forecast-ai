@@ -51,3 +51,6 @@ plt.plot(predicted, label="Predicted")
 plt.legend()
 plt.title("LSTM Prediction")
 plt.show()
+
+model.save("models/lstm_model.h5")
+print("Model saved successfully")
