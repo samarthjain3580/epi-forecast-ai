@@ -17,7 +17,7 @@ scaled = scaler.fit_transform(values)
 # Create sequences
 X = []
 y = []
-window = 14
+window = 30
 
 for i in range(window, len(scaled)):
     X.append(scaled[i-window:i, 0])
@@ -33,10 +33,10 @@ model = Sequential()
 model.add(LSTM(50, return_sequences=False, input_shape=(X.shape[1],1)))
 model.add(Dense(1))
 
-model.compile(optimizer="adam", loss="mse")
+model.compile(optimizer="adam", loss="mae")
 
 # Train model
-model.fit(X, y, epochs=10, batch_size=16)
+model.fit(X, y, epochs=30, batch_size=16)
 
 # Predict
 predicted = model.predict(X)
