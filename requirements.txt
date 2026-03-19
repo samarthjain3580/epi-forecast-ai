@@ -2,6 +2,6 @@ flask
 numpy
 pandas
 scikit-learn
-tensorflow-cpu
+tensorflow==2.13.0
 requests
 streamlit
