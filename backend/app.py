@@ -1,3 +1,4 @@
+import os
 from flask import Flask, jsonify, request
 import numpy as np
 from tensorflow.keras.models import load_model
@@ -6,7 +7,11 @@ from data_source import fetch_data
 
 app = Flask(__name__)
 
-model = load_model("models/lstm_model.h5", compile=False)
+# ✅ FIXED MODEL PATH + NEW FILE
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "..", "models", "lstm_model_fixed.h5")
+
+model = load_model(model_path, compile=False)
 
 @app.route("/predict")
 def predict():
@@ -16,7 +21,6 @@ def predict():
 
     df = fetch_data(country)
 
-    # simulate diseases
     if disease == "flu":
         df["cases"] *= 0.6
     elif disease == "dengue":
@@ -27,10 +31,8 @@ def predict():
     scaler = MinMaxScaler()
     scaler.fit(values)
 
-    # past 30 days
     past_30 = values[-30:].flatten().tolist()
 
-    # last 14 days input
     last_14 = values[-14:]
     last_14_scaled = scaler.transform(last_14)
     current_input = last_14_scaled.reshape(1, 14, 1)
@@ -62,6 +64,6 @@ def predict():
     })
 
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 10000))
+    print(f"Starting server on port {port}")
     app.run(host="0.0.0.0", port=port)
