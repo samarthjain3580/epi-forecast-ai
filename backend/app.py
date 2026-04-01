@@ -7,30 +7,42 @@ from backend.data_source import fetch_data
 
 app = Flask(__name__)
 
-# ✅ Correct model path
+# ✅ model initially None
+model = None
+
+# ✅ correct path
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "..", "models", "lstm_model_fixed.h5")
 
-# ✅ Safe model loading (fixes your keras error)
-model = tf.keras.models.load_model(
-    model_path,
-    compile=False,
-    safe_mode=False
-)
+
+def load_my_model():
+    global model
+    if model is None:
+        print("Loading model...")
+        model = tf.keras.models.load_model(
+            model_path,
+            compile=False,
+            safe_mode=False
+        )
+        print("Model loaded ✅")
+
 
 @app.route("/")
 def home():
-    return "API is running 🚀"
+    return "API running 🚀"
+
 
 @app.route("/predict")
 def predict():
     try:
+        # 🔥 LOAD MODEL ONLY WHEN NEEDED
+        load_my_model()
+
         country = request.args.get("country", "india")
         disease = request.args.get("disease", "covid")
 
         df = fetch_data(country)
 
-        # 🦠 simulate diseases
         if disease == "flu":
             df["cases"] *= 0.6
         elif disease == "dengue":
@@ -38,7 +50,6 @@ def predict():
 
         values = df["cases"].values.reshape(-1, 1)
 
-        # ✅ better scaling
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler.fit(values[-60:])
 
@@ -47,7 +58,6 @@ def predict():
         last_14 = values[-14:]
         last_14_scaled = scaler.transform(last_14)
 
-        # ✅ avoid zero input issue
         if last_14_scaled.max() == 0:
             last_14_scaled += 1e-6
 
