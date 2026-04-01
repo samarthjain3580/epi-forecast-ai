@@ -1,48 +1,46 @@
 import os
 from flask import Flask, jsonify, request
 import numpy as np
-import tensorflow as tf
+from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
-from backend.data_source import fetch_data
+
+# 🔥 IMPORTANT FIX (relative import)
+from data_source import fetch_data
 
 app = Flask(__name__)
 
-# ✅ model initially None
-model = None
-
-# ✅ correct path
+# ✅ MODEL PATH (robust for both local + render)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "..", "models", "lstm_model_fixed.h5")
 
-
-def load_my_model():
-    global model
-    if model is None:
-        print("Loading model...")
-        model = tf.keras.models.load_model(
-            model_path,
-            compile=False,
-            safe_mode=False
-        )
-        print("Model loaded ✅")
+# ✅ LOAD MODEL SAFELY
+try:
+    model = load_model(model_path, compile=False)
+    print("✅ Model loaded successfully")
+except Exception as e:
+    print("❌ Model loading failed:", str(e))
+    model = None
 
 
+# ✅ ROOT ROUTE (health check)
 @app.route("/")
 def home():
     return "API running 🚀"
 
 
+# ✅ PREDICT ROUTE
 @app.route("/predict")
 def predict():
-    try:
-        # 🔥 LOAD MODEL ONLY WHEN NEEDED
-        load_my_model()
+    if model is None:
+        return jsonify({"error": "Model not loaded"}), 500
 
+    try:
         country = request.args.get("country", "india")
         disease = request.args.get("disease", "covid")
 
         df = fetch_data(country)
 
+        # disease scaling
         if disease == "flu":
             df["cases"] *= 0.6
         elif disease == "dengue":
@@ -50,16 +48,13 @@ def predict():
 
         values = df["cases"].values.reshape(-1, 1)
 
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        scaler.fit(values[-60:])
+        scaler = MinMaxScaler()
+        scaler.fit(values)
 
         past_30 = values[-30:].flatten().tolist()
 
         last_14 = values[-14:]
         last_14_scaled = scaler.transform(last_14)
-
-        if last_14_scaled.max() == 0:
-            last_14_scaled += 1e-6
 
         current_input = last_14_scaled.reshape(1, 14, 1)
 
@@ -67,7 +62,6 @@ def predict():
 
         for _ in range(7):
             pred = model.predict(current_input, verbose=0)
-
             predictions.append(pred[0][0])
 
             pred_reshaped = pred.reshape(1, 1, 1)
@@ -92,3 +86,9 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ✅ RUN (Render compatible)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

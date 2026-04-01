@@ -22,7 +22,9 @@ st.markdown("---")
 
 with st.spinner("Fetching live predictions..."):
     try:
-        url = f"http://127.0.0.1:10000/predict?country={country}&disease={disease}"
+        API_URL = "https://epi-forecast-ai-3.onrender.com"
+
+        url = f"{API_URL}/predict?country={country}&disease={disease}"  # Replace with your backend URL http://127.0.0.1:5000/predict?country={country}&disease={disease}
         response = requests.get(url)
         data = response.json()
 
