@@ -1,7 +1,7 @@
 setuptools
 wheel
 flask
-numpy==1.24.3
+numpy==1.23.5
 pandas
 scikit-learn
 tensorflow==2.12.0
