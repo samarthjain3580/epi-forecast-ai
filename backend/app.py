@@ -5,7 +5,7 @@ from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 
 # 🔥 IMPORTANT FIX (relative import)
-from data_source import fetch_data
+from backend.data_source import fetch_data
 
 app = Flask(__name__)
 
