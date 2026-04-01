@@ -11,12 +11,16 @@ app = Flask(__name__)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(BASE_DIR, "..", "models", "lstm_model_fixed.h5")
 
-# ✅ FINAL MODEL LOAD FIX (CRITICAL)
+# ✅ Safe model loading (fixes your keras error)
 model = tf.keras.models.load_model(
     model_path,
     compile=False,
-    safe_mode=False   # 🔥 THIS FIXES YOUR ERROR
+    safe_mode=False
 )
+
+@app.route("/")
+def home():
+    return "API is running 🚀"
 
 @app.route("/predict")
 def predict():
@@ -34,7 +38,7 @@ def predict():
 
         values = df["cases"].values.reshape(-1, 1)
 
-        # ✅ better scaling (important for all countries)
+        # ✅ better scaling
         scaler = MinMaxScaler(feature_range=(0, 1))
         scaler.fit(values[-60:])
 
@@ -78,10 +82,3 @@ def predict():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-# ✅ REQUIRED FOR RENDER
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    print(f"Starting server on port {port}")
-    app.run(host="0.0.0.0", port=port)
