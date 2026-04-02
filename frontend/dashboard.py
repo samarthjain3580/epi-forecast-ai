@@ -3,6 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime, timedelta
 import time
+import os
 
 st.set_page_config(page_title="Epidemic Forecast AI", layout="centered")
 
@@ -22,9 +23,9 @@ st.markdown("---")
 
 with st.spinner("Fetching live predictions..."):
     try:
-        API_URL = "https://epi-forecast-ai-3.onrender.com"
 
-        url = f"{API_URL}/predict?country={country}&disease={disease}"  # Replace with your backend URL http://127.0.0.1:5000/predict?country={country}&disease={disease}
+        api_base = os.environ.get("BACKEND_URL", "http://127.0.0.1:5000")
+        url = f"{api_base}/predict?country={country}&disease={disease}"
         response = requests.get(url)
         data = response.json()
 

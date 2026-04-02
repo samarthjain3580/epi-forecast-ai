@@ -1,13 +1,18 @@
 import os
+import sys
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 import numpy as np
 from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 
-# 🔥 IMPORTANT FIX (relative import)
+# Ensure project root is in sys.path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from backend.data_source import fetch_data
 
 app = Flask(__name__)
+CORS(app)
 
 # ✅ MODEL PATH (robust for both local + render)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

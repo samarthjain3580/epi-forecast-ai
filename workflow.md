@@ -29,7 +29,7 @@ Return Results to Dashboard
    - Saved model in `models/lstm_model.h5`
 
 5. Prediction API
-   - Flask API → `backend/app.py`
+   - Flask API → `backend/app.py` OR //python -m backend.app
    - Endpoint:
      ```
      http://127.0.0.1:5000/predict
