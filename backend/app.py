@@ -3,37 +3,33 @@ import sys
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import numpy as np
-from tensorflow.keras.models import load_model
 from sklearn.preprocessing import MinMaxScaler
 
 # Ensure project root is in sys.path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from backend.data_source import fetch_data
+from backend.model_numpy import LSTMPredictor
 
 app = Flask(__name__)
 CORS(app)
 
-# ✅ MODEL PATH (robust for both local + render)
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(BASE_DIR, "..", "models", "lstm_model_fixed.h5")
-
-# ✅ LOAD MODEL SAFELY
+# LOAD MODEL SAFELY
 try:
-    model = load_model(model_path, compile=False)
-    print("✅ Model loaded successfully")
+    model = LSTMPredictor()
+    print("Model loaded successfully (NumPy)")
 except Exception as e:
-    print("❌ Model loading failed:", str(e))
+    print("Model loading failed:", str(e))
     model = None
 
 
-# ✅ ROOT ROUTE (health check)
+# ROOT ROUTE (health check)
 @app.route("/")
 def home():
-    return "API running 🚀"
+    return "API running"
 
 
-# ✅ PREDICT ROUTE
+# PREDICT ROUTE
 @app.route("/predict")
 def predict():
     if model is None:
@@ -58,18 +54,19 @@ def predict():
 
         past_30 = values[-30:].flatten().tolist()
 
-        last_14 = values[-14:]
-        last_14_scaled = scaler.transform(last_14)
+        last_30 = values[-30:]
+        last_30_scaled = scaler.transform(last_30)
 
-        current_input = last_14_scaled.reshape(1, 14, 1)
+        current_input = last_30_scaled.reshape(1, 30, 1).astype(np.float32)
 
         predictions = []
 
         for _ in range(7):
-            pred = model.predict(current_input, verbose=0)
-            predictions.append(pred[0][0])
+            pred = model.predict(current_input)
+            pred_val = float(pred[0][0])
+            predictions.append(pred_val)
 
-            pred_reshaped = pred.reshape(1, 1, 1)
+            pred_reshaped = np.array([[[pred_val]]], dtype=np.float32)
 
             current_input = np.append(
                 current_input[:, 1:, :],
@@ -93,7 +90,7 @@ def predict():
         return jsonify({"error": str(e)}), 500
 
 
-# ✅ RUN (Render compatible)
+# RUN (Render compatible)
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)

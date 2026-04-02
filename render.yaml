@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: epi-forecast-api
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn backend.app:app
+  - type: web
+    name: epi-forecast-dashboard
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run frontend/dashboard.py --server.port=$PORT --server.headless=true
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          name: epi-forecast-api
+          type: web
+          property: host
