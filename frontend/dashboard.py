@@ -25,8 +25,10 @@ with st.spinner("Fetching live predictions..."):
     try:
 
         api_base = os.environ.get("BACKEND_URL", "http://127.0.0.1:5000")
+        if not api_base.startswith("http"):
+            api_base = f"https://{api_base}.onrender.com"
         url = f"{api_base}/predict?country={country}&disease={disease}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         data = response.json()
 
         preds = data["predicted_cases_next_7_days"]
