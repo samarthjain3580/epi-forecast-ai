@@ -71,29 +71,29 @@ with st.spinner("Fetching live predictions..."):
         # 📈 GRAPH (PAST + FUTURE)
         st.subheader("📈 Trend Forecast (Past + Future)")
 
-        past_dates = [
-            (today - timedelta(days=len(past)-i)).strftime("%b %d")
-            for i in range(len(past))
-        ]
+        all_dates = []
+        past_values = []
+        future_values = []
 
-        future_dates = [
-            (today + timedelta(days=i+1)).strftime("%b %d")
-            for i in range(len(preds))
-        ]
+        for i in range(len(past)):
+            d = (today - timedelta(days=len(past)-i)).strftime("%b %d")
+            all_dates.append(d)
+            past_values.append(past[i])
+            future_values.append(None)
 
-        past_df = pd.DataFrame({
-            "Date": past_dates,
-            "Past": past
+        for i in range(len(preds)):
+            d = (today + timedelta(days=i+1)).strftime("%b %d")
+            all_dates.append(d)
+            past_values.append(None)
+            future_values.append(preds[i])
+
+        chart_df = pd.DataFrame({
+            "Date": all_dates,
+            "Past Cases": past_values,
+            "Forecast": future_values
         })
 
-        future_df = pd.DataFrame({
-            "Date": future_dates,
-            "Forecast": preds
-        })
-
-        combined = pd.merge(past_df, future_df, on="Date", how="outer")
-
-        st.line_chart(combined.set_index("Date"))
+        st.line_chart(chart_df.set_index("Date"))
 
         # 🔮 INSIGHT
         st.subheader("🔮 Key Insight")
@@ -117,7 +117,11 @@ with st.spinner("Fetching live predictions..."):
         }
 
         lat, lon = coords.get(country, [28.6, 77.2])
-        st.map(pd.DataFrame({"lat": [lat], "lon": [lon]}))
+        map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
+        try:
+            st.map(map_df)
+        except Exception:
+            st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
 
     except Exception as e:
         st.error("⚠️ Backend connection failed")
