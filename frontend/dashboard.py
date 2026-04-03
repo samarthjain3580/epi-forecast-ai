@@ -97,7 +97,17 @@ with st.spinner("Fetching live predictions..."):
         }
 
         lat, lon = coords.get(country, [28.6, 77.2])
-        st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
+        
+        # Try to show map, fallback to text if it fails
+        try:
+            import sys
+            if sys.version_info >= (3, 14):
+                st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
+            else:
+                map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
+                st.map(map_df)
+        except Exception:
+            st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
 
     except Exception as e:
         st.error("⚠️ Backend connection failed")
