@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
 import time
@@ -71,9 +72,8 @@ with st.spinner("Fetching live predictions..."):
         # 📈 GRAPH (PAST + FUTURE)
         st.subheader("📈 Trend Forecast (Past + Future)")
 
-        all_cases = past + preds
-        
-        st.line_chart(pd.DataFrame({"cases": all_cases}))
+        all_cases = np.array(past + preds, dtype=float)
+        st.line_chart(all_cases)
 
         # 🔮 INSIGHT
         st.subheader("🔮 Key Insight")
@@ -97,10 +97,7 @@ with st.spinner("Fetching live predictions..."):
         }
 
         lat, lon = coords.get(country, [28.6, 77.2])
-        try:
-            st.map(pd.DataFrame({"lat": [lat], "lon": [lon]}))
-        except Exception:
-            st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
+        st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
 
     except Exception as e:
         st.error("⚠️ Backend connection failed")
