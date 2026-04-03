@@ -71,17 +71,9 @@ with st.spinner("Fetching live predictions..."):
         # 📈 GRAPH (PAST + FUTURE)
         st.subheader("📈 Trend Forecast (Past + Future)")
 
-        col1, col2 = st.columns(2)
+        all_cases = past + preds
         
-        with col1:
-            st.caption("Past 30 Days")
-            past_chart = pd.DataFrame({"cases": [float(x) for x in past]})
-            st.line_chart(past_chart)
-        
-        with col2:
-            st.caption("Next 7 Days Forecast")
-            future_chart = pd.DataFrame({"cases": [float(x) for x in preds]})
-            st.line_chart(future_chart)
+        st.line_chart(pd.DataFrame({"cases": all_cases}))
 
         # 🔮 INSIGHT
         st.subheader("🔮 Key Insight")
