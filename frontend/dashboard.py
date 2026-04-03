@@ -75,17 +75,19 @@ with st.spinner("Fetching live predictions..."):
         past_values = []
         future_values = []
 
+        float_nan = float('nan')
+
         for i in range(len(past)):
             d = (today - timedelta(days=len(past)-i)).strftime("%b %d")
             all_dates.append(d)
-            past_values.append(past[i])
-            future_values.append(None)
+            past_values.append(float(past[i]))
+            future_values.append(float_nan)
 
         for i in range(len(preds)):
             d = (today + timedelta(days=i+1)).strftime("%b %d")
             all_dates.append(d)
-            past_values.append(None)
-            future_values.append(preds[i])
+            past_values.append(float_nan)
+            future_values.append(float(preds[i]))
 
         chart_df = pd.DataFrame({
             "Date": all_dates,
@@ -117,9 +119,8 @@ with st.spinner("Fetching live predictions..."):
         }
 
         lat, lon = coords.get(country, [28.6, 77.2])
-        map_df = pd.DataFrame({"lat": [lat], "lon": [lon]})
         try:
-            st.map(map_df)
+            st.map(pd.DataFrame({"lat": [lat], "lon": [lon]}))
         except Exception:
             st.info(f"📍 {country.upper()} — Lat: {lat}, Lon: {lon}")
 
